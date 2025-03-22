@@ -1,0 +1,243 @@
+{% liquid
+  assign predictive_result_type = "product"
+
+  if settings.show_collection
+      assign predictive_result_type = predictive_result_type |  append: ",collection"
+  endif
+
+  if settings.show_article
+      assign predictive_result_type = predictive_result_type |  append: ",article"
+  endif
+
+  if settings.show_page
+      assign predictive_result_type = predictive_result_type |  append: ",page"
+  endif
+
+   assign my_array = ""
+   for collection in collections 
+     for tag in collection.all_tags 
+      assign my_array = my_array | append: tag | append: ", "
+    endfor
+   endfor
+  
+  assign new_my_array = my_array | split: ", "
+  assign result = new_my_array | uniq | sort_natural | join: ", "
+  assign product_tags = result | split: ", "
+
+  assign popular_search = routes.search_url | append: "?type=product&options%5Bunavailable_products%5D=last&options%5Bprefix%5D=last&&q="
+  assign popular_search_tag = settings.popular_search_queries | split: ','
+
+%}
+
+<!-- Mobile Menu Bar -->
+<div class="col-auto d-none d-md-only-block">
+  <div class="mobile__menu_bar header__actions_btn--menu">
+    {% render 'icon-hamburger' %}
+  </div>
+</div>
+
+<!-- Header Logo Start -->
+<div class="header__logo col-md-3 col-lg-3">
+  {%- if request.page_type == 'index' -%}
+  <h1 class="header__heading mb-0">
+    {%- endif -%}
+    {%- render 'header-logo', className: 'header__logo_link' -%}
+    {%- if request.page_type == 'index' -%}
+  </h1>
+  {%- endif -%}
+</div>
+<!-- Header Logo End -->
+
+<!-- Mobile Menu Bar end -->
+<div class="col-md-6 col-lg-6 d-md-none text-center">
+  {%- if search_button == "hide" -%}
+  
+  {%- elsif search_button == "icon"  -%}
+  <button class="header__actions_btn header__actions_btn--search" aria-label="{{ 'general.search.search' | t }}">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+      <path fill="currentColor" d="M508.5 481.6l-129-129c-2.3-2.3-5.3-3.5-8.5-3.5h-10.3C395 312 416 262.5 416 208 416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c54.5 0 104-21 141.1-55.2V371c0 3.2 1.3 6.2 3.5 8.5l129 129c4.7 4.7 12.3 4.7 17 0l9.9-9.9c4.7-4.7 4.7-12.3 0-17zM208 384c-97.3 0-176-78.7-176-176S110.7 32 208 32s176 78.7 176 176-78.7 176-176 176z" />
+    </svg>
+  </button>
+  {%- else-%}
+  {%- if settings.predictive_search_enabled -%}
+  <predictive-search class="search-modal__form" data-loading-text="{{ 'accessibility.loading' | t }}"  data-limit="{{ settings.number_of_search_result }}" data-unavailable="{{ settings.show_unavailable_product }}" data-types="{{ predictive_result_type }}">
+    {% else %}
+      <search-form class="search-modal__form">
+    {%- endif -%} 
+    <form action="{{ routes.search_url }}" method="get" role="search" class="search search-modal__form">
+
+
+     {% unless settings.search_type == "none" %}
+       <div class="select__filter--search-box">
+              <div class="select-custom header-global-search-select">
+                <div class="select__field_form">
+                    <label class="visually-hidden" for="category__serch--form">
+                      {{ 'customer.addresses.country' | t }}
+                    </label>
+       <svg width="38" height="24" viewBox="0 0 38 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="predictive-search-filter-svg">
+<path d="M11.1115 6.59624C11.3526 8.0999 11.5924 9.55816 11.7782 10.5937C11.5668 10.5994 11.4207 10.6008 11.3611 10.6008C10.9966 10.2249 10.6958 6.59056 10.6958 6.59056C10.6958 6.59056 10.8434 6.59198 11.1115 6.59624Z" fill="#E9E9E9"/>
+<path d="M30.5782 14.9288C30.1696 12.4619 27.8333 10.4405 25.3622 10.415C22.8911 10.3894 21.2186 12.3683 21.6286 14.8352C22.0371 17.302 24.372 19.3234 26.8446 19.349C29.3157 19.3745 30.9867 17.3956 30.5782 14.9288ZM29.5228 13.6138L27.1538 14.2904C27.1396 14.2677 27.124 14.2436 27.107 14.2209L28.6106 12.3938C28.9752 12.7499 29.2873 13.1627 29.5228 13.6138ZM27.5141 11.581L26.4261 13.6819C26.4006 13.6719 26.375 13.662 26.3495 13.6535L26.1197 11.0874C26.6062 11.171 27.0772 11.3413 27.5141 11.581ZM22.779 12.3073L24.9295 14.123C24.9182 14.1443 24.9097 14.167 24.8997 14.1883L22.2556 13.5145C22.3463 13.0662 22.5251 12.6577 22.779 12.3073ZM22.6896 16.1615C22.4726 15.7501 22.3166 15.3047 22.24 14.8422C22.2343 14.811 22.23 14.7798 22.2272 14.7486L24.8628 14.9657C24.8699 14.9926 24.8785 15.0181 24.887 15.0423L22.6896 16.1615ZM24.7366 18.2056H24.7352C24.2784 17.963 23.8571 17.6439 23.4954 17.268L25.3778 15.7501C25.3991 15.7686 25.4218 15.7856 25.4445 15.8026L24.7366 18.2056ZM25.4771 13.6407L23.6188 11.5228C23.9819 11.293 24.4018 11.137 24.8657 11.0675L25.5466 13.6166C25.5225 13.6237 25.4998 13.6322 25.4771 13.6407ZM26.7424 18.7376C26.4956 18.7347 26.2516 18.7092 26.0105 18.6624L26.2332 16.1076C26.2601 16.1104 26.2856 16.1118 26.3112 16.1118L27.4531 18.678C27.2261 18.7191 26.9892 18.7404 26.7424 18.7376ZM28.5681 18.2524L27.029 15.8735C27.0474 15.8579 27.0658 15.8437 27.0829 15.8267L29.5086 17.3375C29.2689 17.7077 28.9497 18.0198 28.5681 18.2524ZM29.9512 16.248L27.3935 15.1557C27.395 15.1302 27.3964 15.1061 27.3964 15.0806L29.9526 14.8522C29.9583 14.8749 29.9625 14.899 29.9668 14.9217C30.0448 15.3884 30.0349 15.8352 29.9512 16.248Z" fill="#E9E9E9"/>
+<path d="M30.7044 4.63723C23.9862 0.485142 13.5074 0.974541 10.2802 1.24265C10.1653 0.492235 10.0958 0.0241153 10.0958 0.0241153L7.79207 0C7.86584 0.811408 9.92556 12.0278 9.92556 12.0278C10.3823 12.164 12.0945 12.0747 12.0945 12.0747C12.0633 12.0165 12.0094 11.798 11.9413 11.459C14.1911 11.2845 15.7388 11.2817 15.7388 11.2817C15.7388 11.2817 16.4991 23.8443 27.7524 23.9607C38.3419 24.0713 40.7108 10.8207 30.7044 4.63723ZM15.6224 2.28811C18.8766 2.32074 21.6782 2.58885 24.0614 3.07257C25.9438 3.45416 29.0915 4.56346 30.7895 6.0657C31.6492 6.82462 30.259 6.96506 28.7922 6.04442C27.9638 5.52382 25.6686 4.63013 23.6103 4.21875C19.427 3.38323 16.1232 3.54211 15.16 3.37614C14.228 3.21584 14.9415 2.28102 15.6224 2.28811ZM9.42482 3.9776C9.32977 3.75489 8.93826 1.21569 8.94251 1.07384C8.94818 0.930566 9.64611 1.08093 9.64611 1.08093C9.6532 1.13342 9.66455 1.20718 9.67874 1.29797C9.78229 1.97745 10.0277 3.58041 10.0703 3.88823C10.1043 4.13932 9.80499 4.19038 9.59788 4.11662C9.51702 4.08825 9.45035 4.04002 9.42482 3.9776ZM10.7072 11.364C10.6675 11.2377 9.72129 6.05577 9.72129 6.05577L9.91138 6.05861L10.4703 6.06428C10.5228 6.26997 11.2831 11.3711 11.2831 11.3711C11.2831 11.3711 11.0491 11.4235 10.8788 11.4221C10.7909 11.4221 10.7214 11.4065 10.7072 11.364ZM31.7286 22.2485C31.7286 22.2485 28.5142 24.8288 22.8428 22.1548C17.1715 19.4823 16.5303 11.181 16.4821 10.8902C16.4339 10.5994 18.3446 10.7299 18.3446 10.7299C18.3503 14.5571 19.9093 17.834 22.5024 20.1916C24.5181 22.0215 28.6419 22.5676 30.3512 21.9818C32.0605 21.3973 31.7286 22.2485 31.7286 22.2485ZM28.1879 21.325C23.7663 22.0144 19.4894 18.6851 19.1404 10.3497C19.1404 10.3497 13.4365 10.5511 11.7782 10.5937C11.5924 9.55816 11.3526 8.0999 11.1115 6.59624C13.3074 6.63312 23.572 6.85016 26.5381 7.75803C29.8675 8.77654 32.0506 11.0533 32.6975 13.9259C33.4309 17.1814 32.6081 20.6356 28.1879 21.325ZM33.3968 9.0333C32.9486 9.51844 30.9044 7.43885 31.5768 7.12961C32.2492 6.81895 33.8451 8.54816 33.3968 9.0333Z" fill="#E9E9E9"/>
+<path d="M18.3191 21.3917C16.641 19.8043 15.526 17.8893 14.7869 16.0977C14.0975 14.4266 12.1853 13.6294 10.5214 14.3358C9.14394 14.9203 7.95804 15.5246 6.70546 15.0323C5.15783 14.4238 4.92661 13.4719 5.05853 12.6988C4.73511 14.272 5.39473 16.3076 8.07152 16.7913H8.07294C8.45879 16.8396 8.86165 16.8523 9.2702 16.841C10.3838 16.8112 11.5455 16.6012 12.5782 16.4296C15.1657 16.0026 15.8366 20.8852 11.2335 19.8327C10.3738 19.6369 9.58795 19.3944 8.87584 19.1135C7.10549 18.4156 5.79476 17.4736 4.93086 16.3856C4.28543 15.5714 3.89107 14.6734 3.7407 13.7344C3.72084 13.6095 3.69389 13.4904 3.66268 13.3755C3.02008 11.0817 0.0822756 11.1909 0 11.1952C0.0907869 11.2193 3.23287 12.042 2.63282 14.4479C2.02426 16.8864 0.324847 14.8749 0.239734 14.2777C0.23406 14.3458 0.0482306 16.6069 2.74347 16.7998C5.48126 16.997 8.24601 19.488 7.07287 20.6058C5.89831 21.725 4.57339 18.5475 4.55069 18.4851C4.54076 18.529 4.20599 20.1306 5.94371 21.9236C6.04726 22.0314 6.16358 22.1421 6.29125 22.2527C7.56227 23.3677 9.17232 23.9621 10.7214 23.9706C14.4649 23.9904 25.6076 24.0302 25.6402 23.9607C22.1634 23.9621 19.1447 22.1705 18.3191 21.3917ZM10.7129 22.6613C10.4589 22.6485 10.1908 22.5847 9.93407 22.491C8.85598 22.0938 7.95804 21.1406 9.12125 20.9562C9.15104 20.9519 9.18225 20.9477 9.21204 20.9448C11.1654 20.7023 12.0023 22.7294 10.7129 22.6613Z" fill="#E9E9E9"/>
+</svg>
+                    <select id="search-filter"  id="category__serch--form" name="search-filter" data-type="{{ settings.search_type }}" class="header-global-search-categories">
+                       {% if settings.search_type == "vendor" %}
+                          <option value="" selected="selected">{{ 'templates.search.search_filter.vendor' | t }}</option>
+                        {% for vendor in shop.vendors %}
+                           <option value="{{ vendor }}">{{ vendor }}</option>
+                        {%- endfor -%}
+                      {% elsif settings.search_type == "tag" %}
+                        <option value="" selected="selected">{{ 'templates.search.search_filter.tag' | t }}</option>
+                         {% for tag in product_tags %}
+                          <option value="{{ tag }}">{{ tag }}</option>
+                        {% endfor %}
+                      {% else %}
+                                       
+                         <option value="" selected="selected">SHOP BY</option>
+                          {% for type in shop.types %}
+                               {% if type != blank %}
+                             <option value="{{ type }}">{{ type }}</option>
+                                 {% endif %}
+                          {%- endfor -%}
+                      {% endif %}
+                    </select>
+                    <svg aria-hidden="true" focusable="false" viewBox="0 0 10 6">
+                      <use href="#icon-caret" />
+                    </svg>
+                  </div>
+          </div>
+    {% endunless %}
+    
+      <div class="search__input_field input__field_form search__input--inline-header">
+        <input class="search__input input__field" 
+               id="Search-In-Modal"
+               type="search"
+               name="q"
+               value=""
+               placeholder="{{ 'general.search.search' | t }}"
+               {%- if settings.predictive_search_enabled -%}
+               role="combobox"
+               aria-expanded="false"
+               aria-owns="predictive-search-results-list"
+               aria-controls="predictive-search-results-list"
+               aria-haspopup="listbox"
+               aria-autocomplete="list"
+               autocorrect="off"
+               autocomplete="off"
+               autocapitalize="off"
+               spellcheck="false" 
+               {%- endif -%}
+               >
+        <input type="hidden" name="options[prefix]" value="last">
+        <button type="reset" class="reset__button field__button{% if search.terms == blank %} hidden{% endif %}" aria-label="{{ 'general.search.reset' | t }}">
+            <svg class="icon icon-close" aria-hidden="true" focusable="false">
+              <use xlink:href="#icon-reset">
+            </svg>
+          </button>
+        <button class="search__button input__field_form_button button--primary" aria-label="{{ 'general.search.search' | t }}">
+          <svg class="icon icon-search" aria-hidden="true" focusable="false" role="presentation">
+            <use href="#icon-search">
+              </svg>
+            </button> 
+          </div>
+       {% unless settings.search_type == "none" %}
+            </div>
+        {% endunless %}
+
+        {%- if settings.predictive_search_enabled -%}
+        <div class="predictive-search predictive-search--header predictive--search--in-header" tabindex="-1" data-predictive-search>
+          <div class="predictive-search__loading-state">
+            <svg aria-hidden="true" focusable="false" role="presentation" class="spinner" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+              <circle class="path" fill="none" stroke-width="6" cx="33" cy="33" r="30"></circle>
+            </svg>
+          </div>
+        </div>
+
+        <span class="predictive-search-status visually-hidden" role="status" aria-hidden="true"></span>
+        {%- endif -%}
+        </form>
+      {%- if settings.predictive_search_enabled -%}
+      </predictive-search>
+      {%- else -%}
+          </search-form>            
+    {%- endif -%}
+  {%- endif -%}
+</div>
+
+
+<!-- Header Actions Start -->
+<div class="header__actions col-md-3 col-lg-3">
+  
+  {%- unless search_button == "hide" -%}
+  <button class="header__actions_btn header__actions_btn--search d-none" aria-label="{{ 'general.search.search' | t }}">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+      <path fill="currentColor" d="M508.5 481.6l-129-129c-2.3-2.3-5.3-3.5-8.5-3.5h-10.3C395 312 416 262.5 416 208 416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c54.5 0 104-21 141.1-55.2V371c0 3.2 1.3 6.2 3.5 8.5l129 129c4.7 4.7 12.3 4.7 17 0l9.9-9.9c4.7-4.7 4.7-12.3 0-17zM208 384c-97.3 0-176-78.7-176-176S110.7 32 208 32s176 78.7 176 176-78.7 176-176 176z" />
+    </svg>
+  </button>
+  {%- endunless -%}
+  
+  {%- if shop.customer_accounts_enabled and account_icon -%}
+  <a href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}" class="header__actions_btn header__actions_btn--user d-md-none">
+    {%- if customer -%}
+      {% render 'icon-account' %}
+    {%- else -%}  
+     {% render 'user-icon' %} 
+    {%- endif -%}  
+    <span class="visually-hidden">
+      {%- liquid
+          if customer
+            echo 'customer.account_fallback' | t
+          else
+            echo 'customer.log_in' | t
+          endif
+        -%}
+    </span>
+  </a>
+  {%- endif -%}
+
+    {%- if compare_icon -%}
+  <a href="/pages/compare" class="header__actions_btn header__actions_btn--wishlist d-md-none">
+    {% render 'compare-icon' %}
+    <span class="header__actions_btn_cart_num compare__count"></span>
+  </a>
+  {%- endif -%}
+
+  {%- if wishlist_icon -%}
+  <a href="/pages/wishlist" class="header__actions_btn header__actions_btn--wishlist d-md-none">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+      <path fill="currentColor" d="M462.3 62.7c-54.5-46.4-136-38.7-186.6 13.5L256 96.6l-19.7-20.3C195.5 34.1 113.2 8.7 49.7 62.7c-62.8 53.6-66.1 149.8-9.9 207.8l193.5 199.8c6.2 6.4 14.4 9.7 22.6 9.7 8.2 0 16.4-3.2 22.6-9.7L472 270.5c56.4-58 53.1-154.2-9.7-207.8zm-13.1 185.6L256.4 448.1 62.8 248.3c-38.4-39.6-46.4-115.1 7.7-161.2 54.8-46.8 119.2-12.9 142.8 11.5l42.7 44.1 42.7-44.1c23.2-24 88.2-58 142.8-11.5 54 46 46.1 121.5 7.7 161.2z" />
+    </svg>
+    <span class="header__actions_btn_cart_num wishlist__count"></span>
+  </a>
+  {%- endif -%}
+
+  {%- if cart_icon -%}
+  {%- unless template contains 'cart' -%}
+  {%- if settings.cart_type == "drawer" -%}
+  <open-minicart>
+    <a href="{{ routes.cart_url }}" class="header__actions_btn header__actions_btn--cart" >
+     {% render 'icon-cart', icon: cart_icon_type %}
+
+      <div class="cart-count-bubble header__actions_btn_cart_num">
+        {%- if cart.item_count < 100 -%}
+        <span id="cart-notification-count" aria-hidden="true">{{ cart.item_count }}</span>
+        {%- endif -%}
+        <span class="visually-hidden">{{ 'sections.header.cart_count' | t: count: cart.item_count }}</span>
+      </div>
+    </a>
+  </open-minicart>  
+  {%- else -%}
+  <a href="{{ routes.cart_url }}" class="header__actions_btn header__actions_btn--cart" >
+     {% render 'icon-cart', icon: cart_icon_type %}
+    <div class="cart-count-bubble header__actions_btn_cart_num">
+      {%- if cart.item_count < 100 -%}
+      <span id="cart-notification-count" aria-hidden="true">{{ cart.item_count }}</span>
+      {%- endif -%}
+      <span class="visually-hidden">{{ 'sections.header.cart_count' | t: count: cart.item_count }}</span>
+    </div>
+  </a>
+  {%- endif -%}
+  {%- endunless -%}
+  {%- endif -%}
+
+</div>
